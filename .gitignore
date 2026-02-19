@@ -1,1 +1,8 @@
-cloud/dining-concierge-chatbot/docs/CC_Spring2026_Assignment1.md
+docs/
+CLAUDE.md
+.env
+__pycache__/
+*.pyc
+node_modules/
+.DS_Store
+other-scripts/yelp_restaurants.json

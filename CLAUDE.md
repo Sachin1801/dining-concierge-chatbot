@@ -40,6 +40,32 @@ S3 (frontend) → API Gateway → LF0 → Lex → LF1 → SQS (Q1) → LF2 → S
 - `other-scripts/` — Yelp scraping script, DynamoDB loader, OpenSearch loader
 - `docs/` — Assignment spec (gitignored)
 
+## Project Config
+
+- **AWS Profile:** `sachin-nyu` (use `--profile sachin-nyu` for all AWS CLI commands)
+- **AWS Region:** `us-east-1`
+- **Lambda Runtime:** Python 3.12
+- **Cuisines:** Chinese, Italian, Japanese, Mexican, Indian, Thai
+- **Extra Credit:** Yes — user state in DynamoDB
+
+## AWS Resources (update as created)
+
+| Resource | Name/ID | Status |
+|----------|---------|--------|
+| S3 Bucket (frontend) | cc-hw1-chatbot-frontend (http://cc-hw1-chatbot-frontend.s3-website-us-east-1.amazonaws.com) | done |
+| API Gateway | u52o56huph — https://u52o56huph.execute-api.us-east-1.amazonaws.com/v1 | done |
+| Lambda LF0 | dining-concierge-LF0 (Lex-integrated) | done |
+| Lambda LF1 | dining-concierge-LF1 | done |
+| Lambda LF2 | — | pending |
+| Lex Bot | VJTF7IKACA / alias 5KEANLJDZS (prod) | done |
+| SQS Queue Q1 | DiningConciergeQ1 (https://sqs.us-east-1.amazonaws.com/746140163942/DiningConciergeQ1) | done |
+| DynamoDB `yelp-restaurants` | yelp-restaurants (1160 items) | done |
+| DynamoDB `user-dining-state` | user-dining-state (extra credit) | done |
+| OpenSearch `restaurants` | — | pending (create last, billing!) |
+| SES | sa9082@nyu.edu (verify in inbox) | pending verification |
+| CloudWatch/EventBridge | — | pending (deploy with LF2) |
+| Lambda LF2 | code written, deploy when OpenSearch ready | pending |
+
 ## Git Rules
 
 **CRITICAL: Never include `Co-Authored-By: Claude` or any Claude Code attribution in commit messages, git history, or any GitHub-visible metadata. All commits must appear as authored solely by `sachin1801`. This applies to every commit, PR, and git operation in this repository — no exceptions.**
