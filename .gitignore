@@ -3,6 +3,8 @@ CLAUDE.md
 .env
 __pycache__/
 *.pyc
+*.zip
+package/
 node_modules/
 .DS_Store
 other-scripts/yelp_restaurants.json

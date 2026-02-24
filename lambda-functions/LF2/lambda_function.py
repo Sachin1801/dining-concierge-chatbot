@@ -14,7 +14,7 @@ SQS_QUEUE_URL = os.environ.get(
 )
 OPENSEARCH_HOST = os.environ.get("OPENSEARCH_HOST", "")  # e.g., search-xxx.us-east-1.es.amazonaws.com
 DYNAMODB_TABLE = os.environ.get("DYNAMODB_TABLE", "yelp-restaurants")
-SES_SENDER_EMAIL = os.environ.get("SES_SENDER_EMAIL", "sa9082@nyu.edu")
+SES_SENDER_EMAIL = os.environ.get("SES_SENDER_EMAIL", "kk5846@nyu.edu")
 NUM_SUGGESTIONS = 3
 
 
@@ -79,8 +79,17 @@ def lambda_handler(event, context):
 def query_opensearch(cuisine):
     """Query OpenSearch for restaurant IDs matching the given cuisine."""
     if not OPENSEARCH_HOST:
-        print("OPENSEARCH_HOST not configured")
-        return []
+        print("OPENSEARCH_HOST not configured — using fallback hardcoded IDs for testing")
+        fallback = {
+            "chinese":  ["uaFHoq-a5XqxF-bsOK9_Qg", "FXhSEZfIqjMZh4hR0_8jMQ", "NebgteFykeM1gwiVgPcCHw"],
+            "italian":  ["QPEzLkO35OTYijFhs8d7-w"],
+            "japanese": ["PjjpgjY_sdawJU1JHbyNTQ"],
+            "indian":   ["VC1udoc_sbHdFaBr0-bMsA"],
+            "mexican":  ["PqqnNrUtU7XTKQvUM4cyqQ", "FkA9aoMhWO4XKFMTuTnl4Q"],
+            "thai":     ["nFszVPUX4tj-oarjfBO0nw", "75EeAJz31Sa-lltufSLcAQ"],
+        }
+        return fallback.get(cuisine.lower(), [])
+
 
     # Use IAM auth for OpenSearch
     credentials = boto3.Session().get_credentials()
