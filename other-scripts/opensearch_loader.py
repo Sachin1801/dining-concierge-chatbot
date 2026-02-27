@@ -18,31 +18,21 @@ import boto3
 from opensearchpy import OpenSearch, RequestsHttpConnection, helpers
 from requests_aws4auth import AWS4Auth
 
-AWS_PROFILE = "sachin-nyu"
-AWS_REGION = "us-east-1"
+AWS_PROFILE = os.environ.get("AWS_PROFILE", "default")
+AWS_REGION = os.environ.get("AWS_REGION", "us-east-1")
 
-# UPDATE THIS when you create the OpenSearch domain
-OPENSEARCH_HOST = ""  # e.g., "search-restaurants-xxxx.us-east-1.es.amazonaws.com"
-
+OPENSEARCH_HOST = os.environ.get("OPENSEARCH_HOST", "")
 INDEX_NAME = "restaurants"
+
+MASTER_USER = os.environ.get("OPENSEARCH_MASTER_USER", "admin")
+MASTER_PASSWORD = os.environ.get("OPENSEARCH_MASTER_PASSWORD", "")
 
 
 def get_opensearch_client():
-    """Create an authenticated OpenSearch client."""
-    session = boto3.Session(profile_name=AWS_PROFILE, region_name=AWS_REGION)
-    credentials = session.get_credentials().get_frozen_credentials()
-
-    awsauth = AWS4Auth(
-        credentials.access_key,
-        credentials.secret_key,
-        AWS_REGION,
-        "es",
-        session_token=credentials.token,
-    )
-
+    """Create an authenticated OpenSearch client using master user credentials."""
     client = OpenSearch(
         hosts=[{"host": OPENSEARCH_HOST, "port": 443}],
-        http_auth=awsauth,
+        http_auth=(MASTER_USER, MASTER_PASSWORD),
         use_ssl=True,
         verify_certs=True,
         connection_class=RequestsHttpConnection,
@@ -103,9 +93,9 @@ def load_data(client):
 
 
 def main():
-    if not OPENSEARCH_HOST:
-        print("ERROR: OPENSEARCH_HOST is not set.")
-        print("Update the OPENSEARCH_HOST variable in this script with your OpenSearch domain endpoint.")
+    if not OPENSEARCH_HOST or not MASTER_PASSWORD:
+        print("ERROR: OPENSEARCH_HOST and OPENSEARCH_MASTER_PASSWORD must be set as environment variables.")
+        print("Copy .env.example to .env, fill in your values, then run: source .env")
         print("\nTo create an OpenSearch domain, run:")
         print("  aws opensearch create-domain \\")
         print("    --domain-name restaurants \\")
