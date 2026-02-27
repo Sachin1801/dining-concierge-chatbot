@@ -39,12 +39,11 @@ def lambda_handler(event, context):
 
 def handle_greeting(event):
     # Extra Credit: Check if returning user has a previous search
-    # We try to get the email from session attributes (set by frontend/LF0)
-    session_attrs = event.get("sessionState", {}).get("sessionAttributes", {})
-    user_email = session_attrs.get("userEmail", "")
+    # Uses the persistent sessionId (stored in browser localStorage) to identify returning users
+    session_id = event.get("sessionId", "")
 
-    if user_email:
-        last_search = get_user_state(user_email)
+    if session_id:
+        last_search = get_user_state(session_id)
         if last_search:
             location = last_search.get("Location", "Manhattan")
             cuisine = last_search.get("Cuisine", "")
@@ -159,8 +158,9 @@ def fulfill_dining_suggestions(event):
         MessageBody=json.dumps(message_body),
     )
 
-    # Extra Credit: Save user's last search to DynamoDB
-    save_user_state(email, location, cuisine.lower())
+    # Extra Credit: Save user's last search to DynamoDB (keyed by sessionId for returning user detection)
+    session_id = event.get("sessionId", "")
+    save_user_state(session_id, email, location, cuisine.lower())
 
     return close(
         event,
@@ -242,13 +242,14 @@ def delegate(event):
 # --- Extra Credit: User State Helpers ---
 
 
-def save_user_state(email, location, cuisine):
-    """Save the user's last search to DynamoDB."""
+def save_user_state(session_id, email, location, cuisine):
+    """Save the user's last search to DynamoDB, keyed by sessionId."""
     try:
         dynamodb = boto3.resource("dynamodb")
         table = dynamodb.Table(USER_STATE_TABLE)
         table.put_item(
             Item={
+                "UserId": session_id,
                 "Email": email,
                 "Location": location,
                 "Cuisine": cuisine,
@@ -259,12 +260,12 @@ def save_user_state(email, location, cuisine):
         print(f"Error saving user state: {e}")
 
 
-def get_user_state(email):
-    """Retrieve the user's last search from DynamoDB."""
+def get_user_state(session_id):
+    """Retrieve the user's last search from DynamoDB by sessionId."""
     try:
         dynamodb = boto3.resource("dynamodb")
         table = dynamodb.Table(USER_STATE_TABLE)
-        response = table.get_item(Key={"Email": email})
+        response = table.get_item(Key={"UserId": session_id})
         return response.get("Item")
     except Exception as e:
         print(f"Error getting user state: {e}")

@@ -1,8 +1,11 @@
 var checkout = {};
 
-// Generate a unique session ID for this browser tab
-// Persists across the conversation but resets on page reload
-var chatSessionId = 'user-' + Math.random().toString(36).substr(2, 9) + '-' + Date.now();
+// Persistent session ID — stored in localStorage so returning users keep the same ID
+var chatSessionId = localStorage.getItem('chatSessionId');
+if (!chatSessionId) {
+  chatSessionId = 'user-' + Math.random().toString(36).substr(2, 9) + '-' + Date.now();
+  localStorage.setItem('chatSessionId', chatSessionId);
+}
 
 $(document).ready(function() {
   var $messages = $('.messages-content'),

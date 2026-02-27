@@ -66,12 +66,13 @@ def lambda_handler(event, context):
         # Enrich from DynamoDB
         restaurants = get_restaurant_details(selected_ids)
 
-        # Format and send email
-        send_email(email, restaurants, cuisine, num_people, dining_time)
-
-        # Delete message from queue
-        sqs.delete_message(QueueUrl=SQS_QUEUE_URL, ReceiptHandle=receipt_handle)
-        print(f"Processed and deleted message for {email}")
+        # Format and send email — only delete from queue on success
+        try:
+            send_email(email, restaurants, cuisine, num_people, dining_time)
+            sqs.delete_message(QueueUrl=SQS_QUEUE_URL, ReceiptHandle=receipt_handle)
+            print(f"Processed and deleted message for {email}")
+        except Exception as e:
+            print(f"ERROR sending email to {email}: {e}. Message will remain in queue for retry.")
 
     return {"statusCode": 200, "body": "Processed messages."}
 
@@ -79,17 +80,8 @@ def lambda_handler(event, context):
 def query_opensearch(cuisine):
     """Query OpenSearch for restaurant IDs matching the given cuisine."""
     if not OPENSEARCH_HOST:
-        print("OPENSEARCH_HOST not configured — using fallback hardcoded IDs for testing")
-        fallback = {
-            "chinese":  ["uaFHoq-a5XqxF-bsOK9_Qg", "FXhSEZfIqjMZh4hR0_8jMQ", "NebgteFykeM1gwiVgPcCHw"],
-            "italian":  ["QPEzLkO35OTYijFhs8d7-w"],
-            "japanese": ["PjjpgjY_sdawJU1JHbyNTQ"],
-            "indian":   ["VC1udoc_sbHdFaBr0-bMsA"],
-            "mexican":  ["PqqnNrUtU7XTKQvUM4cyqQ", "FkA9aoMhWO4XKFMTuTnl4Q"],
-            "thai":     ["nFszVPUX4tj-oarjfBO0nw", "75EeAJz31Sa-lltufSLcAQ"],
-        }
-        return fallback.get(cuisine.lower(), [])
-
+        print("ERROR: OPENSEARCH_HOST not configured. Cannot query restaurants.")
+        return []
 
     # Use IAM auth for OpenSearch
     credentials = boto3.Session().get_credentials()
